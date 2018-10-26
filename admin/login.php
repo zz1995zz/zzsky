@@ -55,21 +55,16 @@ function login(){
   //检验成功，跳转页面
   header('Location:index.php');
 
-  //假检验
-  // //检验邮箱正确
-  // if($email!=='913980996@qq.com'){
-  //   $GLOBALS['error_message'] = '请输入正确的邮箱';
-  //   return;
-  // }
-  // //检验密码正确
-  // if($password!=='1995zzzz'){
-  //   $GLOBALS['error_message'] = '请输入正确的密码';
-  //   return;
-  // }
-
 }
 if($_SERVER['REQUEST_METHOD']==='POST'){
   login();
+}
+
+if($_SERVER['REQUEST_METHOD']==='GET'&&isset($_GET['action'])&&$_GET['action']==='logout'){
+  //退出登录
+  //清除session
+  unset($_SESSION['users_logged_in']);
+
 }
 
  ?>
