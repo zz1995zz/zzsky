@@ -119,7 +119,7 @@ $categories=zz_mysqli_fetch_all('select * from categories');
                 <div class="form-group">
                 <label for="slug">别名</label>
                 <input id="slug" class="form-control" name="slug" type="text" placeholder="slug">
-                <p class="help-block">https://zzmedia/category/<strong>slug</strong></p>
+                <p class="help-block">https://myblog/category/<strong>slug</strong></p>
                 </div>
                 <div class="form-group">
                  <button class="btn btn-primary" type="submit">添加</button>
@@ -180,7 +180,9 @@ $categories=zz_mysqli_fetch_all('select * from categories');
          if($(this).prop('checked')){
           //获取自定义属性  dataset data attr
           var id=$(this).data('id');
-            addDelete.push(id);
+            //防止重复添加id
+            // addDelete.indexOf(id)!==-1 || addDelete.push(id);
+            addDelete.includes(id) || addDelete.push(id);         
          }else {
            addDelete.splice(addDelete.indexOf(id),1);
          }
@@ -188,8 +190,16 @@ $categories=zz_mysqli_fetch_all('select * from categories');
          addDelete.length?$btnDelete.fadeIn():$btnDelete.fadeOut();
          // $btnDelete.attr('href','/admin/category_delete.php?id='+addDelete);
          $btnDelete.prop('search','?id='+addDelete);
-      })
 
+         //当下面按钮全选中时，上面按钮也选中
+         var flag=true;
+         $tbodyCheckboxs.each(function(i){
+          if($tbodyCheckboxs.eq(i).prop('checked')!==true){
+            flag=false;
+          }
+         }) 
+         $('thead input').prop('checked',flag); 
+      });
 
       //版本一：
       // //表格中任意一个checkbox选中状态变化时
@@ -207,6 +217,18 @@ $categories=zz_mysqli_fetch_all('select * from categories');
       //    // flag?$btnDelete.attr('style','display:block'):$btnDelete.attr('style','display:none');
       //    flag?$btnDelete.fadeIn():$btnDelete.fadeOut();
       // });
+      
+
+      //全选和全不选
+      $('thead input').on('change',function(){
+        //获取当前状态
+        var checked=$(this).prop('checked');
+        //复选框状态保持一致
+        //不能使用attr!!!
+        $tbodyCheckboxs.prop('checked',checked).trigger('change');
+
+      });
+
     });
 
   </script>
