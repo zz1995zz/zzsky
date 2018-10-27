@@ -6,10 +6,18 @@ $current_user=zz_get_current_users();
 //取得分类数据
 $categories=zz_mysqli_fetch_all("select * from categories");
 //获取选择的分类,状态
+$where='1=1';
+$search='';
 $category=isset($_GET['category'])&&$_GET['category']!=='all'?$_GET['category']:'';
 $status=isset($_GET['posts-status'])&&$_GET['posts-status']!=='all'?$_GET['posts-status']:'';
-$where=empty($category)?'1=1':'categories.id='.$category;
-$where=empty($status)?$where:$where.' and posts.`status`='.'"'.$status.'"';
+if(!empty($category)){
+  $where .= ' and categories.id='.$category;
+  $search.= '&category='.$category;
+}
+if(!empty($status)){
+  $where .= ' and posts.`status`='.'"'.$status.'"';
+  $search.= '&posts-status='.$status;
+}
 
 
 //获取分页数据
@@ -50,7 +58,8 @@ posts.title,
 users.nickname as users_name,
 categories.`name` as categories_name,
 posts.created,
-posts.`status`
+posts.`status`,
+posts.id
 from posts
 inner join categories on categories.id = posts.category_id
 inner join users on users.id =posts.user_id
@@ -161,21 +170,19 @@ function convert_status($status){
             <?php endforeach; ?>
           </select>
           <select name="posts-status" class="form-control input-sm">
-            <option value="all" <?php echo $_GET['posts-status']=='all'?'selected':''; ?>>所有状态</option>
-            <option value="drafted" <?php echo $_GET['posts-status']=='drafted'?'selected':''; ?>>草稿</option>
-            <option value="published" <?php echo $_GET['posts-status']=='published'?'selected':''; ?>>已发表</option>
-            <option value="trashed" <?php echo $_GET['posts-status']=='trashed'?'selected':''; ?>>回收站</option>
+            <option value="all" <?php echo isset($status)&&$status=='all'?'selected':''; ?>>所有状态</option>
+            <option value="drafted" <?php echo isset($status)&&$status=='drafted'?'selected':''; ?>>草稿</option>
+            <option value="published" <?php echo isset($status)&&$status=='published'?'selected':''; ?>>已发表</option>
+            <option value="trashed" <?php echo isset($status)&&$status=='trashed'?'selected':''; ?>>回收站</option>
           </select>
           <button class="btn btn-default btn-sm">筛选</button>
         </form>
         <ul class="pagination pagination-sm pull-right">
-          <li><a href="?page=<?php echo $page-1<1?1:$page-1; ?>">上一页</a></li>
+          <li><a href="?page=<?php echo ($page-1<1?1:$page-1).$search; ?>">上一页</a></li>
          <?php for($i=$begin;$i<=$end;$i++): ?>
-          <!-- $page_get  页码的?参数 -->
-          <?php $page_get= isset($_GET['category'])||isset($_GET['posts-status'])?"?category={$_GET['category']}&posts-status={$_GET['posts-status']}&page={$i}":"page={$i}";?>
-          <li <?php echo $page==$i?'class="active"':''; ?>><a href="<?php echo $page_get; ?>"><?php echo $i; ?></a></li>
+          <li <?php echo $page==$i?'class="active"':''; ?>><a href="?page=<?php echo $i.$search; ?>"><?php echo $i; ?></a></li>
          <?php endfor; ?>
-          <li><a href="?page=<?php echo $page+1>$all_page?$all_page:$page+1; ?>">下一页</a></li>
+          <li><a href="?page=<?php echo ($page+1>$all_page?$all_page:$page+1).$search; ?>">下一页</a></li>
         </ul>
       </div>
       <table class="table table-striped table-bordered table-hover">
@@ -207,7 +214,7 @@ function convert_status($status){
               <td class="text-center"><?php echo convert_status($value['status']); ?></td>
               <td class="text-center">
                 <a href="javascript:;" class="btn btn-default btn-xs">编辑</a>
-                <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
+                <a href="/admin/posts-delete.php?id=<?php echo $value['id']; ?>" class="btn btn-danger btn-xs">删除</a>
               </td>
             </tr>
           <?php endforeach; ?>
