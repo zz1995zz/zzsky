@@ -20,7 +20,7 @@ function zz_get_current_users(){
 }
 
 /**
- * 数据库查询操作---获取多行数据
+ * 数据库查询操作---获取多行数据  索引数组套关联数组
  */
 function zz_mysqli_fetch_all($sql){
 	$conn=mysqli_connect(ZZ_DB_HOST,ZZ_DB_USER,ZZ_DB_PASS,ZZ_DB_NAME);
@@ -43,7 +43,7 @@ function zz_mysqli_fetch_all($sql){
 }
 
 /**
- * 获取单行数据
+ * 获取单行数据  关联数组
  */
 function zz_mysqli_fetch_one($sql){
 	$result=zz_mysqli_fetch_all($sql);

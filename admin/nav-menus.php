@@ -1,3 +1,8 @@
+<?php 
+//引入公共函数
+require_once '../functions.php';
+$current_user=zz_get_current_users();
+ ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
