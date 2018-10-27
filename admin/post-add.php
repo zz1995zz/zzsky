@@ -27,15 +27,16 @@ $current_user=zz_get_current_users();
       <!-- <div class="alert alert-danger">
         <strong>错误！</strong>发生XXX错误
       </div> -->
-      <form class="row">
+      <form class="row" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
         <div class="col-md-9">
           <div class="form-group">
             <label for="title">标题</label>
             <input id="title" class="form-control input-lg" name="title" type="text" placeholder="文章标题">
           </div>
           <div class="form-group">
-            <label for="content">标题</label>
-            <textarea id="content" class="form-control input-lg" name="content" cols="30" rows="10" placeholder="内容"></textarea>
+            <label for="content">内容</label>
+            <!-- 富文本编辑器 -->
+            <script id="content" name="content" type="text/plain">在此处开始编辑</script>
           </div>
         </div>
         <div class="col-md-3">
@@ -81,6 +82,13 @@ $current_user=zz_get_current_users();
 
   <script src="/static/assets/vendors/jquery/jquery.js"></script>
   <script src="/static/assets/vendors/bootstrap/js/bootstrap.js"></script>
+  <script src="/static/assets/vendors/ueditor/ueditor.config.js"></script>
+  <script src="/static/assets/vendors/ueditor/ueditor.all.js"></script>
+  <script type="text/javascript">
+      var ue = UE.getEditor('content',{
+        initialFrameHeight:260
+      });
+  </script>
   <script>NProgress.done()</script>
 </body>
 </html>
