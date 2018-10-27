@@ -2,6 +2,15 @@
 require_once '../functions.php';
 $current_user=zz_get_current_users();
 
+//分类筛选
+//取得分类数据
+$categories=zz_mysqli_fetch_all("select * from categories");
+//获取选择的分类,状态
+$category=isset($_GET['category'])&&$_GET['category']!=='all'?$_GET['category']:'';
+$status=isset($_GET['posts-status'])&&$_GET['posts-status']!=='all'?$_GET['posts-status']:'';
+$where=empty($category)?'1=1':'categories.id='.$category;
+$where=empty($status)?$where:$where.' and posts.`status`='.'"'.$status.'"';
+
 
 //获取分页数据
 $page=isset($_GET['page'])?(int)$_GET['page']:1;
@@ -14,7 +23,8 @@ $all_num=(int)zz_mysqli_fetch_one("select
 count(1) as num
 from posts
 inner join categories on categories.id = posts.category_id
-inner join users on users.id =posts.user_id;")['num'];
+inner join users on users.id =posts.user_id
+where  {$where};")['num'];
 //总页数   ceil的返回值是float，转换成int
 $all_page=(int)ceil($all_num/$size);
 //防止人为在地址栏输入page，而超过范围取不到数据
@@ -44,8 +54,10 @@ posts.`status`
 from posts
 inner join categories on categories.id = posts.category_id
 inner join users on users.id =posts.user_id
+where  {$where}
 order by posts.created desc
 limit {$offset},{$size};");
+
 
 //分页计算
 //=========================================
@@ -60,12 +72,19 @@ $end=$begin+$page_count-1;
 if($begin<1){
   $begin=1;
   $end=$begin+$page_count-1;
+
 }
 //$end最大值不超过总页数
 if($end>$all_page){
-  $end=$all_page;
-  $begin=$end-$page_count+1;
+  //总页数小于要显示的页码数
+  if($all_page<$page_count){
+    $end=$all_page;
+  }else{
+    $end=$all_page;
+    $begin=$end-$page_count+1;
+  }
 }
+
 
 /**
  * 文章状态转换
@@ -134,22 +153,27 @@ function convert_status($status){
       <div class="page-action">
         <!-- show when multiple checked -->
         <a class="btn btn-danger btn-sm" href="javascript:;" style="display: none">批量删除</a>
-        <form class="form-inline">
-          <select name="" class="form-control input-sm">
-            <option value="">所有分类</option>
-            <option value="">未分类</option>
+        <form class="form-inline" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get">
+          <select name="category" class="form-control input-sm">
+            <option value="all">所有分类</option>
+            <?php foreach ($categories as $value): ?>
+              <option value="<?php echo $value['id']; ?>" <?php echo $value['id']==$category?'selected':''; ?>><?php echo $value['name']; ?></option>
+            <?php endforeach; ?>
           </select>
-          <select name="" class="form-control input-sm">
-            <option value="">所有状态</option>
-            <option value="">草稿</option>
-            <option value="">已发布</option>
+          <select name="posts-status" class="form-control input-sm">
+            <option value="all" <?php echo $_GET['posts-status']=='all'?'selected':''; ?>>所有状态</option>
+            <option value="drafted" <?php echo $_GET['posts-status']=='drafted'?'selected':''; ?>>草稿</option>
+            <option value="published" <?php echo $_GET['posts-status']=='published'?'selected':''; ?>>已发表</option>
+            <option value="trashed" <?php echo $_GET['posts-status']=='trashed'?'selected':''; ?>>回收站</option>
           </select>
           <button class="btn btn-default btn-sm">筛选</button>
         </form>
         <ul class="pagination pagination-sm pull-right">
           <li><a href="?page=<?php echo $page-1<1?1:$page-1; ?>">上一页</a></li>
          <?php for($i=$begin;$i<=$end;$i++): ?>
-          <li <?php echo $page==$i?'class="active"':''; ?>><a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+          <!-- $page_get  页码的?参数 -->
+          <?php $page_get= isset($_GET['category'])||isset($_GET['posts-status'])?"?category={$_GET['category']}&posts-status={$_GET['posts-status']}&page={$i}":"page={$i}";?>
+          <li <?php echo $page==$i?'class="active"':''; ?>><a href="<?php echo $page_get; ?>"><?php echo $i; ?></a></li>
          <?php endfor; ?>
           <li><a href="?page=<?php echo $page+1>$all_page?$all_page:$page+1; ?>">下一页</a></li>
         </ul>
@@ -167,7 +191,9 @@ function convert_status($status){
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($posts as $value): ?>
+          <!-- 当$posts没查到符合要求的数据返回null时，不遍历数据  foreach遍历空数组会报错 -->
+          <?php if(!empty($posts)): ?>
+            <?php foreach ($posts as $value): ?>
             <tr>
               <td class="text-center"><input type="checkbox"></td>
               <td><?php echo $value['title']; ?></td>
@@ -185,6 +211,7 @@ function convert_status($status){
               </td>
             </tr>
           <?php endforeach; ?>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>
