@@ -166,10 +166,12 @@ $current_user=zz_get_current_users();
     //loading
     $(document).ajaxStart(function() {
       NProgress.start();
+      $('html').attr('class','nprogress-busy');
       $('.loading').fadeIn();
     })
    .ajaxStop(function() {
       NProgress.done();
+      $('html').attr('class','');
       $('.loading').fadeOut();
     });
     
