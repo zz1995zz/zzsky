@@ -136,7 +136,7 @@ $current_user=zz_get_current_users();
    <!-- 模板引擎 -->
   <script type="text/x-jsrender" id="comments_tmpl">
     {{for comments}}
-    <tr {{if status=='rejected'}} class="danger" {{else status=='held'}} class="warning" {{else}}class=""{{/if}}>
+    <tr data-id={{:id}} {{if status=='rejected'}} class="danger" {{else status=='held'}} class="warning" {{else}}class=""{{/if}}>
       <td class="text-center"><input type="checkbox"></td>
       <td>{{:author}}</td>
       <td>{{:content}}</td>
@@ -173,6 +173,7 @@ $current_user=zz_get_current_users();
       $('.loading').fadeOut();
     });
     
+    var current_page=1;
     function loadPageData(page){
       //ajax发送请求获取数据
       $.getJSON('/admin/api/comments.php', {page:page}, function(res) {
@@ -191,6 +192,7 @@ $current_user=zz_get_current_users();
             initiateStartPageClick:false,
             onPageClick:function(e,page){
               loadPageData(page);
+              current_page=page;
             }
         });
         //利用模板引擎渲染到页面
@@ -200,7 +202,21 @@ $current_user=zz_get_current_users();
           $('tbody').html(html);
       });
     }
-    loadPageData(1);
+    loadPageData(current_page);
+
+
+    //删除数据
+    $('tbody').on('click','.btn-danger',function(){
+       //发送ajax请求
+       var $str=$(this).parent().parent();
+       var id=$str.data('id');
+       $.get('/admin/api/comment-delete.php',{id:id},function(res){
+          if(!res) return;
+          $str.remove();
+       });
+       // 重新刷新页面，使后面数据顶上来
+       loadPageData(current_page);
+    });
   </script>
   <script>NProgress.done()</script>
 </body>
