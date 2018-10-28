@@ -63,7 +63,7 @@ $current_user=zz_get_current_users();
       <td class="text-center"><input type="checkbox"></td>
       <td>{{:author}}</td>
       <td>{{:content}}</td>
-      <td>{{:post_title}}</td>
+      <td>{{:title}}</td>
       <td>{{:created}}</td>
       <td>{{:status}}</td>
       <td class="text-center">
@@ -99,6 +99,8 @@ $current_user=zz_get_current_users();
             prev:'上一页',
             next:'下一页',
             // 第一次初始化的时候就会触发一次
+            //使初始不触发
+            initiateStartPageClick:false,
             onPageClick:function(e,page){
               loadPageData(page);
             }
