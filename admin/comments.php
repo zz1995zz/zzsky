@@ -34,13 +34,7 @@ $current_user=zz_get_current_users();
           <button class="btn btn-warning btn-sm">批量拒绝</button>
           <button class="btn btn-danger btn-sm">批量删除</button>
         </div>
-        <ul class="pagination pagination-sm pull-right">
-          <li><a href="#">上一页</a></li>
-          <li><a href="#">1</a></li>
-          <li><a href="#">2</a></li>
-          <li><a href="#">3</a></li>
-          <li><a href="#">下一页</a></li>
-        </ul>
+        <ul id="pagination-demo" class="pagination-sm pull-right"></ul>
       </div>
       <table class="table table-striped table-bordered table-hover">
         <thead>
@@ -51,46 +45,10 @@ $current_user=zz_get_current_users();
             <th>评论在</th>
             <th>提交于</th>
             <th>状态</th>
-            <th class="text-center" width="100">操作</th>
+            <th class="text-center" width="150">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="danger">
-            <td class="text-center"><input type="checkbox"></td>
-            <td>大大</td>
-            <td>楼主好人，顶一个</td>
-            <td>《Hello world》</td>
-            <td>2016/10/07</td>
-            <td>未批准</td>
-            <td class="text-center">
-              <a href="post-add.html" class="btn btn-info btn-xs">批准</a>
-              <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
-            </td>
-          </tr>
-          <tr>
-            <td class="text-center"><input type="checkbox"></td>
-            <td>大大</td>
-            <td>楼主好人，顶一个</td>
-            <td>《Hello world》</td>
-            <td>2016/10/07</td>
-            <td>已批准</td>
-            <td class="text-center">
-              <a href="post-add.html" class="btn btn-warning btn-xs">驳回</a>
-              <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
-            </td>
-          </tr>
-          <tr>
-            <td class="text-center"><input type="checkbox"></td>
-            <td>大大</td>
-            <td>楼主好人，顶一个</td>
-            <td>《Hello world》</td>
-            <td>2016/10/07</td>
-            <td>已批准</td>
-            <td class="text-center">
-              <a href="post-add.html" class="btn btn-warning btn-xs">驳回</a>
-              <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
-            </td>
-          </tr>
         </tbody>
       </table>
     </div>
@@ -98,9 +56,62 @@ $current_user=zz_get_current_users();
   
   <?php $current_page='comments'; ?>
   <?php include 'inc/aside.php'; ?>
-
+   <!-- 模板引擎 -->
+  <script type="text/x-jsrender" id="comments_tmpl">
+    {{for comments}}
+    <tr {{if status=='rejected'}} class="danger" {{else status=='held'}} class="warning" {{else}}class=""{{/if}}>
+      <td class="text-center"><input type="checkbox"></td>
+      <td>{{:author}}</td>
+      <td>{{:content}}</td>
+      <td>{{:post_title}}</td>
+      <td>{{:created}}</td>
+      <td>{{:status}}</td>
+      <td class="text-center">
+        {{if status=='held'||status=='rejected'}}
+        <a href="post-add.html" class="btn btn-success btn-xs">批准</a>
+        {{/if}}
+        {{if status=='held'||status=='approved'}}
+        <a href="post-add.html" class="btn btn-warning btn-xs">驳回</a>
+        {{/if}}
+        <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
+      </td>
+    </tr>
+    {{/for}}
+  </script>
+  
   <script src="/static/assets/vendors/jquery/jquery.js"></script>
   <script src="/static/assets/vendors/bootstrap/js/bootstrap.js"></script>
+  <script src="/static/assets/vendors/jsrender/jsrender.js"></script>
+  <script src="/static/assets/vendors/twbs-pagination/jquery.twbsPagination.js"></script>
+ 
+  <script>
+    function loadPageData(page){
+      //ajax发送请求获取数据
+      $.getJSON('/admin/api/comments.php', {page:page}, function(res) {
+        // 返回数据
+        // 分页组件
+           $('#pagination-demo').twbsPagination({
+            //total总记录数，就是多少条数据  pages总页数
+            totalPages: res.total_page,
+            visiblePages: 5,
+            first:'首页',
+            last:'末页',
+            prev:'上一页',
+            next:'下一页',
+            // 第一次初始化的时候就会触发一次
+            onPageClick:function(e,page){
+              loadPageData(page);
+            }
+        });
+        //利用模板引擎渲染到页面
+          var html=$('#comments_tmpl').render({
+            comments:res.data
+          })
+          $('tbody').html(html);
+      });
+    }
+    loadPageData(1);
+  </script>
   <script>NProgress.done()</script>
 </body>
 </html>
