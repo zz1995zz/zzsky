@@ -177,14 +177,23 @@ $current_user=zz_get_current_users();
     
     var current_page=1;
     function loadPageData(page){
+      
       //ajax发送请求获取数据
       $.getJSON('/admin/api/comments.php', {page:page}, function(res) {
         // 返回数据
+        //当开始页大于总页数时，直接加载最终页
+        if(page>res.total_page){
+          loadPageData(res.total_page);
+          return;
+        }
+        // 先销毁之前的分页组件
+        $('#pagination-demo').twbsPagination('destroy');
         // 分页组件
            $('#pagination-demo').twbsPagination({
             //total总记录数，就是多少条数据  pages总页数
             totalPages: res.total_page,
             visiblePages: 5,
+            startPage: page,
             first:'首页',
             last:'末页',
             prev:'上一页',
@@ -194,7 +203,6 @@ $current_user=zz_get_current_users();
             initiateStartPageClick:false,
             onPageClick:function(e,page){
               loadPageData(page);
-              current_page=page;
             }
         });
         //利用模板引擎渲染到页面
@@ -202,10 +210,10 @@ $current_user=zz_get_current_users();
             comments:res.data
           })
           $('tbody').html(html);
+          current_page=page;
       });
     }
     loadPageData(current_page);
-
 
     //删除数据
     $('tbody').on('click','.btn-danger',function(){
@@ -213,11 +221,12 @@ $current_user=zz_get_current_users();
        var $str=$(this).parent().parent();
        var id=$str.data('id');
        $.get('/admin/api/comment-delete.php',{id:id},function(res){
+          console.log(res);
           if(!res) return;
           $str.remove();
+          // 重新刷新页面，使后面数据顶上来
+          loadPageData(current_page);
        });
-       // 重新刷新页面，使后面数据顶上来
-       loadPageData(current_page);
     });
   </script>
   <script>NProgress.done()</script>
